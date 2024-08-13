@@ -1,0 +1,32 @@
+- в local.env хранятся переменные окружения
+- в cmd запускается приложение
+- в .yaml файлах хранится конфиг, всякие переменные окружения
+- в internal "внутренняя машинерия", в ней есть config, в ней будем работать с cleanenv
+- в starage будет всё что касается БД
+- в lib/logger/sl будет хранится хелперы для пакета slog
+- в slogprettyslog лежат цветовые темы для логера
+- закончена работа на файле response
+
+
+
+--- для тестирования
+id, err := storage.SaveURL("https://web.telegram.org", "tg")
+	if err != nil {
+		log.Error("failed to save url", sl.Err(err))
+		os.Exit(1)
+	}
+
+	log.Info("saved url", slog.Int64("id", id))
+	err = storage.DeleteURL("tg")
+	if err != nil {
+		log.Error("failed to delete url", sl.Err(err))
+		os.Exit(1)
+	}
+
+	id, err = storage.SaveURL("https://www.google.com", "google")
+	if err != nil {
+		log.Error("failed to save url", sl.Err(err))
+		os.Exit(1)
+	}
+
+	_ = storage
