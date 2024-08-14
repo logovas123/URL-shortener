@@ -25,12 +25,14 @@ type Response struct {
 	Alias string `json:"alias,omitempty"` // Alias возвращаем, потому что в запросе он будет необязательным параметром, если в запросе его не будет мы будем его генерировать
 }
 
+const aliasLenght = 6
+
 type URLSaver interface {
 	SaveURL(urlToSave string, alias string) (int64, error)
 }
 
 // Наш Storage(sqlite) реализует интерфейс URLSaver
-// здесь будет возвращаться обработчик, который декодирует запрос в json
+// здесь будет возвращаться обработчик, который обрабатывает запрос
 func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.url.save.New"
@@ -46,7 +48,7 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 			// пишем ошибку в лог
 			log.Error("failed to decode request body", sl.Err(err))
 
-			// возвращаем json с ответом клиенту, если ошибка
+			// возвращаем json с ответом клиенту, если ошибка(в виде html)
 			render.JSON(w, r, resp.Error("failed to decode request"))
 
 			return
@@ -55,10 +57,23 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 		// сообщаем об успешном декодировании
 		log.Info("request body decoded", slog.Any("request", req))
 
+		// проверяем на валидацию данных структуру (json - запрос), если получена ошибка, то
+		// получаем список ошибок и функция ValidationError(), вернёт информацию по каждой ошибке на понятном языке
 		if err := validator.New().Struct(req); err != nil {
+			validateErr := err.(validator.ValidationErrors)
+
 			log.Error("invalid request", sl.Err(err))
 
-			re
+			// возвращаем json с ответом клиенту, если ошибка(в виде html)
+			render.JSON(w, r, resp.Error("invalid request"))
+			render.JSON(w, r, resp.ValidationError(validateErr))
+
+			return
+		}
+
+		alias := req.Alias
+		if alias == "" {
+			alias = random.NewRandomString(aliasLenght)
 		}
 	}
 }
