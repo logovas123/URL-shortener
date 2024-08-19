@@ -43,12 +43,12 @@ func ValidationError(errs validator.ValidationErrors) Response {
 		case "url":
 			errMsgs = append(errMsgs, fmt.Sprintf("field %s is not a valid URL", err.Field()))
 		default:
-			errMsgs = append(errMsgs, fmt.Sprintf("field is not valid", err.Field()))
+			errMsgs = append(errMsgs, fmt.Sprintf("field %s is not valid", err.Field()))
 		}
 	}
 
 	return Response{
 		Status: StatusError,
-		Error: strings.Join(errMsgs, ", ")
+		Error:  strings.Join(errMsgs, ", "),
 	}
 }

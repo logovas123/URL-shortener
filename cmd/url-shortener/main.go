@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 
 	"url-shortener/internal/config"
+	"url-shortener/internal/http-server/handlers/url/save"
 	"url-shortener/internal/http-server/middleware/mwLogger"
 	"url-shortener/internal/lib/logger/handlers/slogpretty"
 	"url-shortener/internal/lib/logger/sl"
@@ -57,8 +59,26 @@ func main() {
 	router.Use(middleware.Recoverer)
 	// чтобы urlы были красивыми
 	router.Use(middleware.URLFormat)
+	// подключаем к рорутеру только что написанный хендлер
+	router.Post("/url", save.New(log, storage))
 
-	// TODO: run server
+	log.Info("starting server", slog.String("address", cfg.Address))
+
+	// создаем сервер
+	srv := &http.Server{
+		Addr:         cfg.Address,
+		Handler:      router,
+		ReadTimeout:  cfg.HTTPServer.Timeout,
+		WriteTimeout: cfg.HTTPServer.Timeout,
+		IdleTimeout:  cfg.HTTPServer.Timeout,
+	}
+
+	if err := srv.ListenAndServe(); err != nil {
+		log.Error("failed to start server")
+	}
+
+	// сервер остановлен
+	log.Error("server stopped")
 }
 
 // функция возвращает логер, который будет зависеть от env, то есть для каждой среды окружения(prod, local, dev) свой логер

@@ -1,11 +1,14 @@
 package save
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 
 	resp "url-shortener/internal/lib/logger/api/response"
 	"url-shortener/internal/lib/logger/sl"
+	"url-shortener/internal/lib/random"
+	"url-shortener/internal/storage"
 
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
@@ -71,9 +74,51 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 			return
 		}
 
+		var id int64
 		alias := req.Alias
+		// если алиас пустой, то будем генерировать, избегая ошибки генерации алиаса, который уже существовал
 		if alias == "" {
-			alias = random.NewRandomString(aliasLenght)
+			for {
+				alias = random.NewRandomString(aliasLenght)
+				id, err = urlSaver.SaveURL(req.URL, alias)
+				if errors.Is(err, storage.ErrURLExists) {
+					continue
+				} else {
+					break
+				}
+			}
+		} else {
+			// сохраняем url
+			id, err = urlSaver.SaveURL(req.URL, alias)
+			// обработка ошибки если алиас существует
+			if errors.Is(err, storage.ErrURLExists) {
+				log.Info("url already exists", slog.String("url", req.URL))
+
+				render.JSON(w, r, resp.Error("url already exists"))
+
+				return
+			}
 		}
+
+		if err != nil {
+			log.Error("failed to add url", sl.Err(err))
+
+			render.JSON(w, r, resp.Error("failed to add url"))
+
+			return
+		}
+
+		// сообщаем об успешном добавлении url
+		log.Info("url added", slog.Int64("id", id))
+
+		// возвращаем статус ок
+		responseOK(w, r, alias)
 	}
+}
+
+func responseOK(w http.ResponseWriter, r *http.Request, alias string) {
+	render.JSON(w, r, Response{
+		Response: resp.OK(),
+		Alias:    alias,
+	})
 }
