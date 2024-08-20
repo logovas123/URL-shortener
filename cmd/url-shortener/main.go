@@ -7,6 +7,8 @@ import (
 	"os"
 
 	"url-shortener/internal/config"
+	"url-shortener/internal/http-server/handlers/deleter"
+	"url-shortener/internal/http-server/handlers/redirect"
 	"url-shortener/internal/http-server/handlers/url/save"
 	"url-shortener/internal/http-server/middleware/mwLogger"
 	"url-shortener/internal/lib/logger/handlers/slogpretty"
@@ -59,8 +61,22 @@ func main() {
 	router.Use(middleware.Recoverer)
 	// чтобы urlы были красивыми
 	router.Use(middleware.URLFormat)
-	// подключаем к рорутеру только что написанный хендлер
-	router.Post("/url", save.New(log, storage))
+
+	// наш собственный роутер для авторизации (права доступа)
+	// он будет работать только для /url
+	router.Route("/url", func(r chi.Router) {
+		r.Use(middleware.BasicAuth("url-shortener", map[string]string{
+			cfg.HTTPServer.User: cfg.HTTPServer.Password,
+		}))
+		// запрос на сохранение урла
+		r.Post("/", save.New(log, storage))
+
+		// запрос на удаление url
+		r.Delete("/{alias}", deleter.New(log, storage))
+	})
+
+	// запрос на получение  url
+	router.Get("/{alias}", redirect.New(log, storage))
 
 	log.Info("starting server", slog.String("address", cfg.Address))
 

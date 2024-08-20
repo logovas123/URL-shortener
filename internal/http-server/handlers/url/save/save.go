@@ -30,6 +30,7 @@ type Response struct {
 
 const aliasLenght = 6
 
+//go:generate go run github.com/vektra/mockery/v2@v2.44.2 --name=URLSaver
 type URLSaver interface {
 	SaveURL(urlToSave string, alias string) (int64, error)
 }
@@ -68,7 +69,6 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 			log.Error("invalid request", sl.Err(err))
 
 			// возвращаем json с ответом клиенту, если ошибка(в виде html)
-			render.JSON(w, r, resp.Error("invalid request"))
 			render.JSON(w, r, resp.ValidationError(validateErr))
 
 			return

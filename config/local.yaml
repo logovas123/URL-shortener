@@ -4,4 +4,5 @@ http_server:  # по сути описываем структуру сервер
   address: "localhost:8082"
   timeout: 4s # время на чтение запроса и отправку ответа
   idle_timeout: 60s # время жизни соединения с клиентом
-  
+  user: "myuser"
+  password: "mypass"
