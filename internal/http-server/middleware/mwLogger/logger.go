@@ -14,7 +14,7 @@ import (
 
 func New(log *slog.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
-		// показывает какой, что запущен наш логер
+		// показывает какой, логер запущен
 		log := log.With(
 			slog.String("component", "middleware/logger"),
 		)

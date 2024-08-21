@@ -41,7 +41,7 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.url.save.New"
 
-		// логер возвращает инфу об id запроса
+		// аргументы функции With() будут добавлятся к каждому выводу лога; GetReqID - задёт номер запроса
 		log = log.With(slog.String("op", op), slog.String("request_id", middleware.GetReqID(r.Context())))
 
 		var req Request

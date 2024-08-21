@@ -17,6 +17,7 @@ import (
 	"url-shortener/internal/lib/logger/handlers/slogdiscard"
 )
 
+// табличные тесты
 func TestSaveHandler(t *testing.T) {
 	cases := []struct {
 		name      string
@@ -60,7 +61,7 @@ func TestSaveHandler(t *testing.T) {
 		tc := tc
 
 		t.Run(tc.name, func(t *testing.T) {
-			// t.Parallel()
+			t.Parallel()
 
 			urlSaverMock := mocks.NewURLSaver(t)
 

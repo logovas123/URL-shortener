@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"url-shortener/internal/config"
-	"url-shortener/internal/http-server/handlers/deleter"
+	"url-shortener/internal/http-server/handlers/delete"
 	"url-shortener/internal/http-server/handlers/redirect"
 	"url-shortener/internal/http-server/handlers/url/save"
 	"url-shortener/internal/http-server/middleware/mwLogger"
@@ -72,7 +72,7 @@ func main() {
 		r.Post("/", save.New(log, storage))
 
 		// запрос на удаление url
-		r.Delete("/{alias}", deleter.New(log, storage))
+		r.Delete("/{alias}", delete.New(log, storage))
 	})
 
 	// запрос на получение  url

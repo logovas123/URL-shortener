@@ -1,4 +1,4 @@
-package deleter
+package delete
 
 import (
 	"errors"
@@ -24,7 +24,7 @@ type URLDeleter interface {
 // возвращает обработчик который удаляет url
 func New(log *slog.Logger, urlDeleter URLDeleter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		const op = "handlers.url.delete.New"
+		const op = "handlers.url.deleter.New"
 
 		log = log.With(slog.String("op", op), slog.String("request_id", middleware.GetReqID(r.Context())))
 
