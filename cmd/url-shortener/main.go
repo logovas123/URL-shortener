@@ -64,6 +64,9 @@ func main() {
 
 	// наш собственный роутер для авторизации (права доступа)
 	// он будет работать только для /url
+	// POST /usr - сохранить url
+	// DELETE /usr/{alias} - удалить url
+	// GET /{alias} - получить url
 	router.Route("/url", func(r chi.Router) {
 		r.Use(middleware.BasicAuth("url-shortener", map[string]string{
 			cfg.HTTPServer.User: cfg.HTTPServer.Password,

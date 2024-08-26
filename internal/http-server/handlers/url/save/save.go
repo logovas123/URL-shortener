@@ -2,6 +2,7 @@ package save
 
 import (
 	"errors"
+	"io"
 	"log/slog"
 	"net/http"
 
@@ -48,11 +49,11 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 
 		// декодируем тело запроса в json струтктуру
 		err := render.DecodeJSON(r.Body, &req)
-		if err != nil {
+		if err != nil && err != io.EOF {
 			// пишем ошибку в лог
 			log.Error("failed to decode request body", sl.Err(err))
 
-			// возвращаем json с ответом клиенту, если ошибка(в виде html)
+			// возвращаем json с ответом клиенту, если ошибка(тело ответа)
 			render.JSON(w, r, resp.Error("failed to decode request"))
 
 			return
